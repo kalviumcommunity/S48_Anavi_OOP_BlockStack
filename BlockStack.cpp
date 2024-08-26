@@ -8,19 +8,25 @@ public:
     int height;
     int position;
 
-    Block(int w, int h, int p) : width(w), height(h), position(p) {}
+    // Constructor with 'this' pointer
+    Block(int width, int height, int position) {
+        this->width = width;
+        this->height = height;
+        this->position = position;
+    }
 
     // Handle block misalignment
-    void fallOff() {
-        if (position != 0) {
+    Block& fallOff() {
+        if (this->position != 0) {  // Using 'this' pointer
             std::cout << "Block is misaligned, losing stability.\n";
-            width -= 1;  // Example of misalignment handling
+            this->width -= 1;  // Example of misalignment handling using 'this'
         }
+        return *this;  // Return the current object for method chaining
     }
 
     // Check if block is stable
     bool isStable() {
-        return width > 0;
+        return this->width > 0;  // Using 'this' pointer
     }
 };
 
@@ -68,18 +74,28 @@ public:
     std::string name;
     int score;
 
-    Player(std::string playerName) : name(playerName), score(0) {}
+    // Constructor with 'this' pointer
+    Player(std::string name) {
+        this->name = name;
+        this->score = 0;
+    }
+
+    // Increase player score
+    Player& increaseScore() {
+        this->score += 10;  // Using 'this' pointer
+        std::cout << this->name << "'s score: " << this->score << "\n";  // Using 'this'
+        return *this;  // Return the current object for method chaining
+    }
+
+    // Example method chaining usage
+    void chainScoreIncrement() {
+        this->increaseScore().increaseScore();  // Chaining method calls
+    }
 
     // Place a block in the game
     void placeBlock(Tower& tower, Block block) {
         tower.addBlock(block);
         increaseScore();
-    }
-
-    // Increase player score
-    void increaseScore() {
-        score += 10;  // Example of scoring
-        std::cout << name << "'s score: " << score << "\n";
     }
 };
 
