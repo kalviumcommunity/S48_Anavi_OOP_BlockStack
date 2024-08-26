@@ -129,13 +129,17 @@ int main() {
     Game game("Player1");
     game.startGame();
 
-    Block block1(10, 2, 0);
-    Block block2(8, 3, 1);
-    Block block3(6, 4, -1);  // Misaligned block
+    // Create an array of Block objects
+    Block blocks[] = {
+        Block(10, 2, 0),
+        Block(8, 3, 1),
+        Block(6, 4, -1)  // Misaligned block
+    };
 
-    game.player.placeBlock(game.tower, block1);
-    game.player.placeBlock(game.tower, block2);
-    game.player.placeBlock(game.tower, block3);
+    // Iterate through the array of blocks and place them in the tower
+    for (int i = 0; i < 3; i++) {
+        game.player.placeBlock(game.tower, blocks[i]);
+    }
 
     game.tower.checkStability();
 
