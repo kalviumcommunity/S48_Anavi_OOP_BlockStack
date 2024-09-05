@@ -33,18 +33,18 @@ public:
 // Tower class definition
 class Tower {
 public:
-    std::vector<Block> blocks;
+    std::vector<Block*> blocks;
     int height;
     bool stability;
 
     Tower() : height(0), stability(true) {}
 
     // Add a block to the tower
-    void addBlock(Block block) {
-        block.fallOff();  // Handle misalignment
-        if (block.isStable()) {
+    void addBlock(Block* block) {
+        block->fallOff();  // Handle misalignment
+        if (block->isStable()) {
             blocks.push_back(block);
-            height += block.height;
+            height += block->height;
             std::cout << "Block added to the tower. Tower height: " << height << "\n";
         } else {
             stability = false;
@@ -54,8 +54,8 @@ public:
 
     // Check tower stability
     void checkStability() {
-        for (Block block : blocks) {
-            if (!block.isStable()) {
+        for (Block* block : blocks) {
+            if (!block->isStable()) {
                 stability = false;
                 break;
             }
@@ -64,6 +64,12 @@ public:
             std::cout << "Tower has collapsed!\n";
         } else {
             std::cout << "Tower is stable.\n";
+        }
+    }
+
+    ~Tower() {
+        for (Block* block : blocks) {
+            delete block;  // Free memory
         }
     }
 };
@@ -93,7 +99,7 @@ public:
     }
 
     // Place a block in the game
-    void placeBlock(Tower& tower, Block block) {
+    void placeBlock(Tower& tower, Block* block) {
         tower.addBlock(block);
         increaseScore();
     }
@@ -102,10 +108,13 @@ public:
 // Game class definition
 class Game {
 public:
-    Tower tower;
-    Player player;
+    Tower* tower;
+    Player* player;
 
-    Game(std::string playerName) : player(playerName) {}
+    Game(std::string playerName) {
+        tower = new Tower();
+        player = new Player(playerName);
+    }
 
     // Start the game
     void startGame() {
@@ -120,32 +129,38 @@ public:
 
     // Check if game is over
     bool checkGameOver() {
-        return !tower.stability;
+        return !tower->stability;
+    }
+
+    ~Game() {
+        delete tower;  // Free memory
+        delete player;  // Free memory
     }
 };
 
-
 int main() {
-    Game game("Player1");
-    game.startGame();
+    Game* game = new Game("Player1");
+    game->startGame();
 
-    // Create an array of Block objects
-    Block blocks[] = {
-        Block(10, 2, 0),
-        Block(8, 3, 1),
-        Block(6, 4, -1)  // Misaligned block
+    // Create an array of Block pointers
+    Block* blocks[] = {
+        new Block(10, 2, 0),
+        new Block(8, 3, 1),
+        new Block(6, 4, -1)  // Misaligned block
     };
 
     // Iterate through the array of blocks and place them in the tower
     for (int i = 0; i < 3; i++) {
-        game.player.placeBlock(game.tower, blocks[i]);
+        game->player->placeBlock(*game->tower, blocks[i]);
     }
 
-    game.tower.checkStability();
+    game->tower->checkStability();
 
-    if (game.checkGameOver()) {
-        game.endGame();
+    if (game->checkGameOver()) {
+        game->endGame();
     }
+
+    delete game;  // Free memory
 
     return 0;
 }
