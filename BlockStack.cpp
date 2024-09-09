@@ -7,12 +7,14 @@ public:
     int width;
     int height;
     int position;
+    static int totalBlocks;  // Static variable to track total blocks
 
     // Constructor with 'this' pointer
     Block(int width, int height, int position) {
         this->width = width;
         this->height = height;
         this->position = position;
+        totalBlocks++;  // Increment total block count
     }
 
     // Handle block misalignment
@@ -28,7 +30,15 @@ public:
     bool isStable() {
         return this->width > 0;  // Using 'this' pointer
     }
+
+    // Static method to get total blocks
+    static int getTotalBlocks() {
+        return totalBlocks;
+    }
 };
+
+// Initialize static variable
+int Block::totalBlocks = 0;
 
 // Tower class definition
 class Tower {
@@ -79,6 +89,7 @@ class Player {
 public:
     std::string name;
     int score;
+    static int highScore;  // Static variable to track the highest score
 
     // Constructor with 'this' pointer
     Player(std::string name) {
@@ -89,6 +100,9 @@ public:
     // Increase player score
     Player& increaseScore() {
         this->score += 10;  // Using 'this' pointer
+        if (this->score > highScore) {
+            highScore = this->score;  // Update high score
+        }
         std::cout << this->name << "'s score: " << this->score << "\n";  // Using 'this'
         return *this;  // Return the current object for method chaining
     }
@@ -103,7 +117,15 @@ public:
         tower.addBlock(block);
         increaseScore();
     }
+
+    // Static method to get the high score
+    static int getHighScore() {
+        return highScore;
+    }
 };
+
+// Initialize static variable
+int Player::highScore = 0;
 
 // Game class definition
 class Game {
@@ -125,6 +147,8 @@ public:
     // End the game
     void endGame() {
         std::cout << "Game over.\n";
+        std::cout << "Highest score achieved: " << Player::getHighScore() << "\n";  // Display high score
+        std::cout << "Total blocks created: " << Block::getTotalBlocks() << "\n";  // Display total blocks
     }
 
     // Check if game is over
