@@ -3,10 +3,12 @@
 
 // Block class definition
 class Block {
-public:
+private:  // Private member variables for encapsulation
     int width;
     int height;
     int position;
+
+public:
     static int totalBlocks;  // Static variable to track total blocks
 
     // Constructor with 'this' pointer
@@ -17,18 +19,44 @@ public:
         totalBlocks++;  // Increment total block count
     }
 
+    // Accessor methods
+    int getWidth() const {
+        return width;
+    }
+
+    int getHeight() const {
+        return height;
+    }
+
+    int getPosition() const {
+        return position;
+    }
+
+    // Mutator methods
+    void setWidth(int newWidth) {
+        width = newWidth;
+    }
+
+    void setHeight(int newHeight) {
+        height = newHeight;
+    }
+
+    void setPosition(int newPosition) {
+        position = newPosition;
+    }
+
     // Handle block misalignment
     Block& fallOff() {
         if (this->position != 0) {  // Using 'this' pointer
             std::cout << "Block is misaligned, losing stability.\n";
-            this->width -= 1;  // Example of misalignment handling using 'this'
+            this->setWidth(this->getWidth() - 1);  // Use mutator
         }
         return *this;  // Return the current object for method chaining
     }
 
     // Check if block is stable
     bool isStable() {
-        return this->width > 0;  // Using 'this' pointer
+        return this->getWidth() > 0;  // Using accessor
     }
 
     // Static method to get total blocks
@@ -54,7 +82,7 @@ public:
         block->fallOff();  // Handle misalignment
         if (block->isStable()) {
             blocks.push_back(block);
-            height += block->height;
+            height += block->getHeight();  // Use accessor
             std::cout << "Block added to the tower. Tower height: " << height << "\n";
         } else {
             stability = false;
@@ -86,9 +114,11 @@ public:
 
 // Player class definition
 class Player {
-public:
+private:  // Private member variables for encapsulation
     std::string name;
     int score;
+
+public:
     static int highScore;  // Static variable to track the highest score
 
     // Constructor with 'this' pointer
@@ -97,13 +127,27 @@ public:
         this->score = 0;
     }
 
+    // Accessor methods
+    std::string getName() const {
+        return name;
+    }
+
+    int getScore() const {
+        return score;
+    }
+
+    // Mutator methods
+    void setScore(int newScore) {
+        score = newScore;
+    }
+
     // Increase player score
     Player& increaseScore() {
-        this->score += 10;  // Using 'this' pointer
+        this->setScore(this->getScore() + 10);  // Use mutator
         if (this->score > highScore) {
             highScore = this->score;  // Update high score
         }
-        std::cout << this->name << "'s score: " << this->score << "\n";  // Using 'this'
+        std::cout << this->getName() << "'s score: " << this->getScore() << "\n";  // Using accessor
         return *this;  // Return the current object for method chaining
     }
 
