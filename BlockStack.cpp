@@ -55,7 +55,7 @@ public:
     }
 
     // Check if block is stable
-    bool isStable() {
+    bool isStable() const {
         return this->getWidth() > 0;  // Using accessor
     }
 
@@ -70,11 +70,12 @@ int Block::totalBlocks = 0;
 
 // Tower class definition
 class Tower {
-public:
+private:  // Private member variables to encapsulate tower details
     std::vector<Block*> blocks;
     int height;
     bool stability;
 
+public:
     Tower() : height(0), stability(true) {}
 
     // Add a block to the tower
@@ -94,7 +95,7 @@ public:
     void checkStability() {
         for (Block* block : blocks) {
             if (!block->isStable()) {
-                stability = false;
+                stability = false; // This line causes the error
                 break;
             }
         }
@@ -103,6 +104,11 @@ public:
         } else {
             std::cout << "Tower is stable.\n";
         }
+    }
+
+    // Accessor method to check stability
+    bool isStable() const {
+        return stability;  // Return the current stability state
     }
 
     ~Tower() {
@@ -197,7 +203,7 @@ public:
 
     // Check if game is over
     bool checkGameOver() {
-        return !tower->stability;
+        return !tower->isStable();  // Use the accessor method
     }
 
     ~Game() {
