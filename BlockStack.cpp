@@ -11,12 +11,30 @@ private:  // Private member variables for encapsulation
 public:
     static int totalBlocks;  // Static variable to track total blocks
 
-    // Constructor with 'this' pointer
+    // Default constructor
+    Block() : width(0), height(0), position(0) {
+        totalBlocks++;  // Increment total block count
+    }
+
+    // Parameterized constructor
     Block(int width, int height, int position) {
         this->width = width;
         this->height = height;
         this->position = position;
         totalBlocks++;  // Increment total block count
+    }
+
+    // Copy constructor
+    Block(const Block& other) {
+        this->width = other.width;
+        this->height = other.height;
+        this->position = other.position;
+        totalBlocks++;  // Increment total block count
+    }
+
+    // Destructor
+    ~Block() {
+        totalBlocks--;  // Decrement total block count
     }
 
     // Accessor methods
@@ -76,7 +94,24 @@ private:  // Private member variables to encapsulate tower details
     bool stability;
 
 public:
+    // Default constructor
     Tower() : height(0), stability(true) {}
+
+    // Copy constructor
+    Tower(const Tower& other) {
+        this->height = other.height;
+        this->stability = other.stability;
+        for (Block* block : other.blocks) {
+            blocks.push_back(new Block(*block));  // Use copy constructor of Block
+        }
+    }
+
+    // Destructor
+    ~Tower() {
+        for (Block* block : blocks) {
+            delete block;  // Free memory
+        }
+    }
 
     // Add a block to the tower
     void addBlock(Block* block) {
@@ -110,12 +145,6 @@ public:
     bool isStable() const {
         return stability;  // Return the current stability state
     }
-
-    ~Tower() {
-        for (Block* block : blocks) {
-            delete block;  // Free memory
-        }
-    }
 };
 
 // Player class definition
@@ -127,10 +156,26 @@ private:  // Private member variables for encapsulation
 public:
     static int highScore;  // Static variable to track the highest score
 
-    // Constructor with 'this' pointer
+    // Default constructor
+    Player() : name("Unnamed"), score(0) {
+        // Initialize with default values
+    }
+
+    // Parameterized constructor
     Player(std::string name) {
         this->name = name;
         this->score = 0;
+    }
+
+    // Copy constructor
+    Player(const Player& other) {
+        this->name = other.name;
+        this->score = other.score;
+    }
+
+    // Destructor
+    ~Player() {
+        // Clean-up code can be added here if needed
     }
 
     // Accessor methods
