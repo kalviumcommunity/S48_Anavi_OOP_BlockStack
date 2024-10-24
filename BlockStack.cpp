@@ -1,8 +1,22 @@
 #include <iostream>
 #include <vector>
 
-// Block class definition
-class Block {
+// Base class Entity for common traits (Abstraction example)
+class Entity {
+protected:  // Protected access specifier to allow access in derived classes
+    int id;
+
+public:
+    Entity() : id(0) {}  // Default constructor
+    Entity(int id) : id(id) {}  // Parameterized constructor
+
+    int getId() const {
+        return id;
+    }
+};
+
+// Block class inherits from Entity (Single Inheritance)
+class Block : public Entity {
 private:  // Private member variables for encapsulation
     int width;
     int height;
@@ -12,12 +26,12 @@ public:
     static int totalBlocks;  // Static variable to track total blocks
 
     // Default constructor
-    Block() : width(0), height(0), position(0) {
+    Block() : Entity(0), width(0), height(0), position(0) {
         totalBlocks++;  // Increment total block count
     }
 
     // Parameterized constructor
-    Block(int width, int height, int position) {
+    Block(int id, int width, int height, int position) : Entity(id) {
         this->width = width;
         this->height = height;
         this->position = position;
@@ -25,7 +39,7 @@ public:
     }
 
     // Copy constructor
-    Block(const Block& other) {
+    Block(const Block& other) : Entity(other.id) {
         this->width = other.width;
         this->height = other.height;
         this->position = other.position;
@@ -86,6 +100,32 @@ public:
 // Initialize static variable
 int Block::totalBlocks = 0;
 
+// Derived class HeavyBlock inherits from Block (Multilevel Inheritance)
+class HeavyBlock : public Block {
+private:
+    int weight;
+
+public:
+    // Constructor for HeavyBlock
+    HeavyBlock(int id, int width, int height, int position, int weight)
+        : Block(id, width, height, position), weight(weight) {}
+
+    int getWeight() const {
+        return weight;
+    }
+
+    void setWeight(int newWeight) {
+        weight = newWeight;
+    }
+
+    // Overriding the fallOff method (Polymorphism concept)
+    HeavyBlock& fallOff() {
+        std::cout << "Heavy block falling!\n";
+        Block::fallOff();  // Call the base class method
+        return *this;
+    }
+};
+
 // Tower class definition
 class Tower {
 private:  // Private member variables to encapsulate tower details
@@ -130,7 +170,7 @@ public:
     void checkStability() {
         for (Block* block : blocks) {
             if (!block->isStable()) {
-                stability = false; // This line causes the error
+                stability = false;
                 break;
             }
         }
@@ -147,8 +187,8 @@ public:
     }
 };
 
-// Player class definition
-class Player {
+// Player class definition (Single Inheritance from Entity)
+class Player : public Entity {
 private:  // Private member variables for encapsulation
     std::string name;
     int score;
@@ -157,18 +197,15 @@ public:
     static int highScore;  // Static variable to track the highest score
 
     // Default constructor
-    Player() : name("Unnamed"), score(0) {
+    Player() : Entity(0), name("Unnamed"), score(0) {
         // Initialize with default values
     }
 
     // Parameterized constructor
-    Player(std::string name) {
-        this->name = name;
-        this->score = 0;
-    }
+    Player(int id, std::string name) : Entity(id), name(name), score(0) {}
 
     // Copy constructor
-    Player(const Player& other) {
+    Player(const Player& other) : Entity(other.id) {
         this->name = other.name;
         this->score = other.score;
     }
@@ -202,11 +239,6 @@ public:
         return *this;  // Return the current object for method chaining
     }
 
-    // Example method chaining usage
-    void chainScoreIncrement() {
-        this->increaseScore().increaseScore();  // Chaining method calls
-    }
-
     // Place a block in the game
     void placeBlock(Tower& tower, Block* block) {
         tower.addBlock(block);
@@ -230,20 +262,19 @@ public:
 
     Game(std::string playerName) {
         tower = new Tower();
-        player = new Player(playerName);
+        player = new Player(1, playerName);
     }
 
     // Start the game
     void startGame() {
         std::cout << "Game started.\n";
-        // Game loop can be added here
     }
 
     // End the game
     void endGame() {
         std::cout << "Game over.\n";
-        std::cout << "Highest score achieved: " << Player::getHighScore() << "\n";  // Display high score
-        std::cout << "Total blocks created: " << Block::getTotalBlocks() << "\n";  // Display total blocks
+        std::cout << "Highest score achieved: " << Player::getHighScore() << "\n";
+        std::cout << "Total blocks created: " << Block::getTotalBlocks() << "\n";
     }
 
     // Check if game is over
@@ -263,9 +294,9 @@ int main() {
 
     // Create an array of Block pointers
     Block* blocks[] = {
-        new Block(10, 2, 0),
-        new Block(8, 3, 1),
-        new Block(6, 4, -1)  // Misaligned block
+        new Block(1, 10, 2, 0),
+        new Block(2, 8, 3, 1),
+        new HeavyBlock(3, 6, 4, -1, 100)  // Misaligned heavy block
     };
 
     // Iterate through the array of blocks and place them in the tower
