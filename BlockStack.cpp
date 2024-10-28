@@ -153,7 +153,7 @@ public:
         }
     }
 
-    // Add a block to the tower
+    // Overloaded addBlock method for Block
     void addBlock(Block* block) {
         block->fallOff();  // Handle misalignment
         if (block->isStable()) {
@@ -163,6 +163,19 @@ public:
         } else {
             stability = false;
             std::cout << "Block is unstable, not added to the tower.\n";
+        }
+    }
+
+    // Overloaded addBlock method for HeavyBlock (Polymorphism example)
+    void addBlock(HeavyBlock* heavyBlock) {
+        heavyBlock->fallOff();  // Specialized handling for HeavyBlock
+        if (heavyBlock->isStable()) {
+            blocks.push_back(heavyBlock);
+            height += heavyBlock->getHeight();
+            std::cout << "HeavyBlock added to the tower. Tower height: " << height << "\n";
+        } else {
+            stability = false;
+            std::cout << "HeavyBlock is unstable, not added to the tower.\n";
         }
     }
 
@@ -245,6 +258,12 @@ public:
         increaseScore();
     }
 
+    // Place a heavy block in the game (using polymorphism with overloaded addBlock)
+    void placeBlock(Tower& tower, HeavyBlock* heavyBlock) {
+        tower.addBlock(heavyBlock);
+        increaseScore();
+    }
+
     // Static method to get the high score
     static int getHighScore() {
         return highScore;
@@ -295,22 +314,24 @@ int main() {
     // Create an array of Block pointers
     Block* blocks[] = {
         new Block(1, 10, 2, 0),
-        new Block(2, 8, 3, 1),
-        new HeavyBlock(3, 6, 4, -1, 100)  // Misaligned heavy block
+        new Block(2, 8, 3, 0),
+        new HeavyBlock(3, 6, 4, 0, 20),  // Array of objects with different types
     };
 
-    // Iterate through the array of blocks and place them in the tower
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 3; ++i) {
         game->player->placeBlock(*game->tower, blocks[i]);
+        game->tower->checkStability();
+        if (game->checkGameOver()) {
+            break;
+        }
     }
 
-    game->tower->checkStability();
+    game->endGame();
 
-    if (game->checkGameOver()) {
-        game->endGame();
+    // Clean-up memory
+    for (int i = 0; i < 3; ++i) {
+        delete blocks[i];  // Free memory for each block
     }
-
-    delete game;  // Free memory
-
+    delete game;  // Free memory for game
     return 0;
 }
