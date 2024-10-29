@@ -1,6 +1,12 @@
 #include <iostream>
 #include <vector>
 
+// Abstract base class Shape (Abstraction example)
+class Shape {
+public:
+    virtual double getArea() const = 0;  // Pure virtual function
+};
+
 // Base class Entity for common traits (Abstraction example)
 class Entity {
 protected:  // Protected access specifier to allow access in derived classes
@@ -15,8 +21,8 @@ public:
     }
 };
 
-// Block class inherits from Entity (Single Inheritance)
-class Block : public Entity {
+// Block class inherits from Entity and Shape (Single Inheritance)
+class Block : public Entity, public Shape {  // Inherits from Shape
 private:  // Private member variables for encapsulation
     int width;
     int height;
@@ -75,6 +81,11 @@ public:
 
     void setPosition(int newPosition) {
         position = newPosition;
+    }
+
+    // Implementing getArea() from Shape
+    double getArea() const override {
+        return static_cast<double>(width * height);  // Area calculation
     }
 
     // Handle block misalignment
@@ -307,31 +318,28 @@ public:
     }
 };
 
+// Main function
 int main() {
-    Game* game = new Game("Player1");
-    game->startGame();
+    Game game("Player1");  // Initialize game with a player name
+    game.startGame();
 
-    // Create an array of Block pointers
-    Block* blocks[] = {
-        new Block(1, 10, 2, 0),
-        new Block(2, 8, 3, 0),
-        new HeavyBlock(3, 6, 4, 0, 20),  // Array of objects with different types
-    };
+    // Create blocks
+    Block* block1 = new Block(1, 5, 2, 1);  // Create a new Block
+    HeavyBlock* heavyBlock1 = new HeavyBlock(2, 6, 3, 1, 100);  // Create a HeavyBlock
 
-    for (int i = 0; i < 3; ++i) {
-        game->player->placeBlock(*game->tower, blocks[i]);
-        game->tower->checkStability();
-        if (game->checkGameOver()) {
-            break;
-        }
-    }
+    // Place blocks in the tower
+    game.player->placeBlock(*(game.tower), block1);
+    game.player->placeBlock(*(game.tower), heavyBlock1);
 
-    game->endGame();
+    // Check tower stability
+    game.tower->checkStability();
 
-    // Clean-up memory
-    for (int i = 0; i < 3; ++i) {
-        delete blocks[i];  // Free memory for each block
-    }
-    delete game;  // Free memory for game
-    return 0;
+    // End the game
+    game.endGame();
+
+    // Cleanup
+    delete block1;  // Free dynamically allocated memory for block
+    delete heavyBlock1;  // Free dynamically allocated memory for heavyBlock
+
+    return 0;  // Indicate successful completion
 }
