@@ -253,28 +253,6 @@ public:
         score = newScore;
     }
 
-    // Increase player score
-    Player& increaseScore() {
-        this->setScore(this->getScore() + 10);  // Use mutator
-        if (this->score > highScore) {
-            highScore = this->score;  // Update high score
-        }
-        std::cout << this->getName() << "'s score: " << this->getScore() << "\n";  // Using accessor
-        return *this;  // Return the current object for method chaining
-    }
-
-    // Place a block in the game
-    void placeBlock(Tower& tower, Block* block) {
-        tower.addBlock(block);
-        increaseScore();
-    }
-
-    // Place a heavy block in the game (using polymorphism with overloaded addBlock)
-    void placeBlock(Tower& tower, HeavyBlock* heavyBlock) {
-        tower.addBlock(heavyBlock);
-        increaseScore();
-    }
-
     // Static method to get the high score
     static int getHighScore() {
         return highScore;
@@ -283,6 +261,30 @@ public:
 
 // Initialize static variable
 int Player::highScore = 0;
+
+// New class ScoreManager (SRP Example)
+class ScoreManager {
+public:
+    static void updateScore(Player& player) {
+        player.setScore(player.getScore() + 10);
+        if (player.getScore() > Player::highScore) {
+            Player::highScore = player.getScore();
+        }
+        std::cout << player.getName() << "'s score: " << player.getScore() << "\n";
+    }
+};
+
+// New class BlockManager (SRP Example)
+class BlockManager {
+public:
+    static void manageBlock(Block* block, Tower& tower) {
+        tower.addBlock(block);
+    }
+
+    static void manageHeavyBlock(HeavyBlock* heavyBlock, Tower& tower) {
+        tower.addBlock(heavyBlock);
+    }
+};
 
 // Game class definition
 class Game {
@@ -320,26 +322,34 @@ public:
 
 // Main function
 int main() {
-    Game game("Player1");  // Initialize game with a player name
-    game.startGame();
+    Game game("Player1");  // Initialize the game
+    game.startGame();  // Start the game
 
-    // Create blocks
-    Block* block1 = new Block(1, 5, 2, 1);  // Create a new Block
-    HeavyBlock* heavyBlock1 = new HeavyBlock(2, 6, 3, 1, 100);  // Create a HeavyBlock
+    // Create some blocks dynamically
+    Block* block1 = new Block(1, 5, 2, 0);
+    Block* block2 = new Block(2, 4, 3, 1);
+    HeavyBlock* heavyBlock = new HeavyBlock(3, 3, 4, 2, 50);
 
-    // Place blocks in the tower
-    game.player->placeBlock(*(game.tower), block1);
-    game.player->placeBlock(*(game.tower), heavyBlock1);
+    // Use BlockManager to manage blocks
+    BlockManager::manageBlock(block1, *game.tower);
+    BlockManager::manageBlock(block2, *game.tower);
+    BlockManager::manageHeavyBlock(heavyBlock, *game.tower);
 
-    // Check tower stability
-    game.tower->checkStability();
+    // Update player score using ScoreManager
+    ScoreManager::updateScore(*game.player);
+
+    // Check game over condition
+    if (game.checkGameOver()) {
+        game.endGame();
+        return 0;
+    }
+
+    // Clean up dynamically allocated memory
+    delete block1;
+    delete block2;
+    delete heavyBlock;
 
     // End the game
     game.endGame();
-
-    // Cleanup
-    delete block1;  // Free dynamically allocated memory for block
-    delete heavyBlock1;  // Free dynamically allocated memory for heavyBlock
-
-    return 0;  // Indicate successful completion
+    return 0;
 }
