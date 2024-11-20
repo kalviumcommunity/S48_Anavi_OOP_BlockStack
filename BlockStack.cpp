@@ -286,77 +286,101 @@ public:
     }
 };
 
-// Interface for different types of block handling (OCP: Adding new block types without modifying the existing code)
+// BlockHandler interface for OCP
 class BlockHandler {
 public:
-    virtual void addBlockToTower(Block* block, Tower& tower) = 0;
+    virtual void manageBlock(Block* block, Tower& tower) = 0; // Pure virtual function
 };
 
-// Concrete class for handling generic blocks (OCP: Open to adding new types of blocks in the future)
-class GenericBlockHandler : public BlockHandler {
+// Specialized BlockHandler for managing normal Block
+class NormalBlockHandler : public BlockHandler {
 public:
-    void addBlockToTower(Block* block, Tower& tower) override {
+    void manageBlock(Block* block, Tower& tower) override {
         tower.addBlock(block);
     }
 };
 
-// Concrete class for handling heavy blocks (OCP: Open to adding new types of blocks in the future)
+// Specialized BlockHandler for managing HeavyBlock
 class HeavyBlockHandler : public BlockHandler {
 public:
-    void addBlockToTower(Block* block, Tower& tower) override {
-        // We can have specific logic for handling heavy blocks here
-        HeavyBlock* heavyBlock = dynamic_cast<HeavyBlock*>(block);
-        if (heavyBlock) {
-            tower.addBlock(heavyBlock);
-        } else {
-            std::cout << "Not a heavy block!\n";
-        }
+    void manageBlock(Block* heavyBlock, Tower& tower) override {
+        tower.addBlock(heavyBlock);
     }
 };
+
+// BlockManager now uses BlockHandler to be open for extension
+class BlockManager {
+public:
+    static void manageBlock(Block* block, Tower& tower, BlockHandler* handler) {
+        handler->manageBlock(block, tower);
+    }
+};
+
 
 // Game class definition
 class Game {
 public:
     Tower* tower;
     Player* player;
-    BlockHandler* blockHandler;
 
     Game(std::string playerName) {
         tower = new Tower();
         player = new Player(1, playerName);
-        blockHandler = new GenericBlockHandler(); // Default handler for generic blocks
     }
 
-    void setBlockHandler(BlockHandler* handler) {
-        blockHandler = handler;
+    // Start the game
+    void startGame() {
+        std::cout << "Game started.\n";
     }
 
-    void start() {
-        std::cout << "Starting the game...\n";
-        Block* block1 = new Block(1, 3, 3, 1);
-        Block* block2 = new Block(2, 4, 2, 0);
-        HeavyBlock* heavyBlock1 = new HeavyBlock(3, 5, 5, 1, 100);
+    // End the game
+    void endGame() {
+        std::cout << "Game over.\n";
+        std::cout << "Highest score achieved: " << Player::getHighScore() << "\n";
+        std::cout << "Total blocks created: " << Block::getTotalBlocks() << "\n";
+    }
 
-        // Using the handler to manage blocks
-        blockHandler->addBlockToTower(block1, *tower);
-        blockHandler->addBlockToTower(block2, *tower);
-        blockHandler->addBlockToTower(heavyBlock1, *tower);
-
-        // Checking tower stability
-        tower->checkStability();
-
-        delete block1;
-        delete block2;
-        delete heavyBlock1;
+    // Check if game is over
+    bool checkGameOver() {
+        return !tower->isStable();  // Use the accessor method
     }
 
     ~Game() {
-        delete tower;
-        delete player;
+        delete tower;  // Free memory
+        delete player;  // Free memory
     }
 };
 
+// Main function
 int main() {
-    Game game("Anavi");
-    game.start();  // Start the game
+    Game game("Player1");  // Initialize the game
+    game.startGame();  // Start the game
+
+    // Create some blocks dynamically
+    Block* block1 = new Block(1, 5, 2, 0);
+    Block* block2 = new Block(2, 4, 3, 1);
+    HeavyBlock* heavyBlock = new HeavyBlock(3, 3, 4, 2, 50);
+
+    // Use BlockManager to manage blocks with appropriate handlers
+    BlockManager::manageBlock(block1, *game.tower, new NormalBlockHandler());
+    BlockManager::manageBlock(block2, *game.tower, new NormalBlockHandler());
+    BlockManager::manageBlock(heavyBlock, *game.tower, new HeavyBlockHandler());
+
+    // Update player score using ScoreManager
+    ScoreManager::updateScore(*game.player);
+
+    // Check game over condition
+    if (game.checkGameOver()) {
+        game.endGame();
+        return 0;
+    }
+
+    // Clean up dynamically allocated memory
+    delete block1;
+    delete block2;
+    delete heavyBlock;
+
+    // End the game
+    game.endGame();
+    return 0;
 }
