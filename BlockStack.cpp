@@ -286,6 +286,37 @@ public:
     }
 };
 
+// BlockHandler interface for OCP
+class BlockHandler {
+public:
+    virtual void manageBlock(Block* block, Tower& tower) = 0; // Pure virtual function
+};
+
+// Specialized BlockHandler for managing normal Block
+class NormalBlockHandler : public BlockHandler {
+public:
+    void manageBlock(Block* block, Tower& tower) override {
+        tower.addBlock(block);
+    }
+};
+
+// Specialized BlockHandler for managing HeavyBlock
+class HeavyBlockHandler : public BlockHandler {
+public:
+    void manageBlock(Block* heavyBlock, Tower& tower) override {
+        tower.addBlock(heavyBlock);
+    }
+};
+
+// BlockManager now uses BlockHandler to be open for extension
+class BlockManager {
+public:
+    static void manageBlock(Block* block, Tower& tower, BlockHandler* handler) {
+        handler->manageBlock(block, tower);
+    }
+};
+
+
 // Game class definition
 class Game {
 public:
@@ -330,10 +361,10 @@ int main() {
     Block* block2 = new Block(2, 4, 3, 1);
     HeavyBlock* heavyBlock = new HeavyBlock(3, 3, 4, 2, 50);
 
-    // Use BlockManager to manage blocks
-    BlockManager::manageBlock(block1, *game.tower);
-    BlockManager::manageBlock(block2, *game.tower);
-    BlockManager::manageHeavyBlock(heavyBlock, *game.tower);
+    // Use BlockManager to manage blocks with appropriate handlers
+    BlockManager::manageBlock(block1, *game.tower, new NormalBlockHandler());
+    BlockManager::manageBlock(block2, *game.tower, new NormalBlockHandler());
+    BlockManager::manageBlock(heavyBlock, *game.tower, new HeavyBlockHandler());
 
     // Update player score using ScoreManager
     ScoreManager::updateScore(*game.player);
