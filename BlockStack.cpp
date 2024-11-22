@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <memory>
 
 // Abstract base class Shape (Abstraction example)
 class Shape {
@@ -286,10 +287,12 @@ public:
     }
 };
 
+
 // BlockHandler interface for OCP
 class BlockHandler {
 public:
     virtual void manageBlock(Block* block, Tower& tower) = 0; // Pure virtual function
+    virtual ~BlockHandler() = default;
 };
 
 // Specialized BlockHandler for managing normal Block
@@ -303,15 +306,20 @@ public:
 // Specialized BlockHandler for managing HeavyBlock
 class HeavyBlockHandler : public BlockHandler {
 public:
-    void manageBlock(Block* heavyBlock, Tower& tower) override {
-        tower.addBlock(heavyBlock);
+    void manageBlock(Block* block, Tower& tower) override {
+        auto* heavyBlock = dynamic_cast<HeavyBlock*>(block);
+        if (heavyBlock) {
+            tower.addBlock(heavyBlock);
+        } else {
+            std::cerr << "Invalid block type for HeavyBlockHandler.\n";
+        }
     }
 };
 
 // BlockManager now uses BlockHandler to be open for extension
 class BlockManager {
 public:
-    static void manageBlock(Block* block, Tower& tower, BlockHandler* handler) {
+    static void manageBlock(Block* block, Tower& tower, std::unique_ptr<BlockHandler>& handler) {
         handler->manageBlock(block, tower);
     }
 };
@@ -351,20 +359,35 @@ public:
     }
 };
 
-// Main function
+// Adding the Liskov Substitution Principle (LSP) code
+
+// Make sure that HeavyBlock can be treated as a Block without issue.
+void handleBlock(Shape* shape) {
+    // Use polymorphism to handle any object of type Block or HeavyBlock
+    std::cout << "Handling block with area: " << shape->getArea() << std::endl;
+}
+
+//main function
 int main() {
     Game game("Player1");  // Initialize the game
-    game.startGame();  // Start the game
+    game.startGame();      // Start the game
 
     // Create some blocks dynamically
     Block* block1 = new Block(1, 5, 2, 0);
     Block* block2 = new Block(2, 4, 3, 1);
     HeavyBlock* heavyBlock = new HeavyBlock(3, 3, 4, 2, 50);
 
+    // Now we can use the handleBlock function, which works with any Shape
+    handleBlock(block1);  // Works because Block is a Shape
+    handleBlock(heavyBlock);  // Works because HeavyBlock is a Shape
+
     // Use BlockManager to manage blocks with appropriate handlers
-    BlockManager::manageBlock(block1, *game.tower, new NormalBlockHandler());
-    BlockManager::manageBlock(block2, *game.tower, new NormalBlockHandler());
-    BlockManager::manageBlock(heavyBlock, *game.tower, new HeavyBlockHandler());
+    std::unique_ptr<BlockHandler> normalHandler = std::make_unique<NormalBlockHandler>();
+    std::unique_ptr<BlockHandler> heavyHandler = std::make_unique<HeavyBlockHandler>();
+
+    BlockManager::manageBlock(block1, *game.tower, normalHandler);
+    BlockManager::manageBlock(block2, *game.tower, normalHandler);
+    BlockManager::manageBlock(heavyBlock, *game.tower, heavyHandler);
 
     // Update player score using ScoreManager
     ScoreManager::updateScore(*game.player);
@@ -380,7 +403,7 @@ int main() {
     delete block2;
     delete heavyBlock;
 
-    // End the game
     game.endGame();
+
     return 0;
 }
